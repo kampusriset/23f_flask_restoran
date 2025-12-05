@@ -1,0 +1,74 @@
+from app import get_db_connection
+
+def init_db():
+    conn = get_db_connection()
+
+    conn.executescript('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            email TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS menu (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            category TEXT NOT NULL,
+            price INTEGER NOT NULL,
+            description TEXT,
+            image_url TEXT,
+            available INTEGER DEFAULT 1
+        );
+
+        CREATE TABLE IF NOT EXISTS reservations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            date TEXT NOT NULL,
+            time TEXT NOT NULL,
+            guests INTEGER NOT NULL,
+            message TEXT,
+            status TEXT DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        );
+    ''')
+
+    conn.commit()
+    conn.close()
+    print("Database berhasil dibuat!")
+
+def add_sample_data():
+    conn = get_db_connection()
+
+    existing = conn.execute('SELECT COUNT(*) as count FROM menu').fetchone()
+    if existing['count'] == 0:
+        sample_menu = [
+            ('Beef Bourguignon', 'Main Course', 185000, 'Daging sapi dimasak dengan red wine dan sayuran', 'https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400'),
+            ('Coq au Vin', 'Main Course', 165000, 'Ayam dalam saus wine merah dengan jamur', 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400'),
+            ('Ratatouille', 'Main Course', 125000, 'Sayuran Prancis panggang dengan herbs', 'https://images.unsplash.com/photo-1572453800999-e8d2d1589b7c?w=400'),
+            ('French Onion Soup', 'Appetizer', 75000, 'Sup bawang klasik dengan keju gruyere', 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400'),
+            ('Escargots', 'Appetizer', 95000, 'Bekicot dengan garlic butter', 'https://usa.inquirer.net/files/2022/12/Authentic-Homemade-Escargots-Easy-Recipe.jpg'),
+            ('Crème Brûlée', 'Dessert', 65000, 'Custard vanilla dengan karamel renyah', 'https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?w=400'),
+            ('Tarte Tatin', 'Dessert', 70000, 'Tart apel karamel terbalik', 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=400'),
+            ('Galette de Bretagne', 'Appetizer', 85000,'Panekuk dengan isian gurih dari Bretagne', 'https://cdn.tasteatlas.com//Images/Dishes/ba0206fa9d884c7dbbce4522a585805b.jpg?w=905&h=510'),
+            ('Soufflé au Chocolat', 'Dessert', 70000, 'Kue cokelat ringan dan lembut','https://cdn.tasteatlas.com//images/dishes/ffe89104a97543eb80544c4e0b196bd5.jpg?w=905&h=510'),
+            ('Créme Caramel', 'Dessert', 65000, 'Custard dengan krim karamel yang lembut','https://www.tasteatlas.com/Images/Dishes/e0fe68df68e5466e9a1d0f7580415820.jpg?mw=1300')
+        ]
+
+        conn.executemany(
+            'INSERT INTO menu (name, category, price, description, image_url) VALUES (?, ?, ?, ?, ?)',
+            sample_menu
+        )
+        conn.commit()
+
+    conn.close()
+    print("Sample data berhasil ditambahkan!")
+
+if __name__ == "__main__":
+    init_db()
+    add_sample_data()

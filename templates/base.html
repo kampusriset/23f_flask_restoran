@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Le Restaurant{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="container">
+            <!-- Logo/Nama Restoran -->
+            <div class="logo">
+                <a href="{{ url_for('index') }}">Le Restaurant</a>
+            </div>
+            
+            <!-- Menu Navigasi -->
+            <nav class="nav">
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('menu') }}">Menu</a>
+                <a href="{{ url_for('about') }}">About</a>
+                
+                <!-- Link berbeda jika sudah login atau belum -->
+                {% if session.user_id %}
+                    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                    <a href="{{ url_for('reservation') }}">Reservasi</a>
+                    <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn-login">Login</a>
+                    <a href="{{ url_for('register') }}" class="btn-register">Register</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">
+                        {{ message }}
+                        <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Le Restaurant</h3>
+                    <p>Restoran Prancis berkelas di Solo Raya</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Kontak</h4>
+                    <p>Jl. Slamet Riyadi No. 123, Surakarta</p>
+                    <p>Telp: (021) 1234-5678</p>
+                    <p>Email: le@restaurant.com</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Jam Operasional</h4>
+                    <p>Senin - Jumat: 11:00 - 22:00</p>
+                    <p>Sabtu - Minggu: 10:00 - 23:00</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Le Restaurant.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        setTimeout(function() {
+            const flashes = document.querySelectorAll('.flash');
+            flashes.forEach(flash => {
+                flash.style.opacity = '0';
+                setTimeout(() => flash.remove(), 300);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>
