@@ -25,7 +25,6 @@ Pengguna dapat melihat menu dan membuat reservasi.
 
 ## 🧰 Teknologi yang Digunakan
 - **Python** (Flask Framework)
-- **Flask SQLAlchemy**
 - **Sqlite3**
 - **HTML, CSS**
 - **JavaScript**
@@ -42,11 +41,26 @@ git clone https://github.com/kampusriset/23f_flask_restoran.git
 ```
 cd 23f_flask_restoran
 ```
-### 3. Import Database 
+### 3. Buat Virtual Environment (Opsional)
+### - windows
+```
+python -m venv venv
+```
+```
+venv\Scripts\Activate
+```
+### - linux
+```
+python3 -m venv venv
+```
+```
+source venv/bin/activate
+```
+### 4. Import Database 
 ```
 python init_db.py
 ```
-### 4. Install Dependensi
+### 5. Install Dependensi
 ### - windows
 ```
 pip install -r requirements.txt
@@ -57,7 +71,7 @@ pip3 install -r requirements.txt
 ```
 jika menggunakan pip3 di linux jika tidak maka sama seperti windows
 
-### 5. Jalankan Aplikasi
+### 6. Jalankan Aplikasi
 ### - windows
 ```
 python app.py
