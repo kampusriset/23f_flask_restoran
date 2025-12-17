@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Le Restaurant{% endblock %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <h1>Dashboard - Selamat Datang, {{ session.username }}!</h1>
+        
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h3>{{ total_reservations }}</h3>
+                <p>Total Reservasi</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ pending_reservations }}</h3>
+                <p>Menunggu Konfirmasi</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ total_reservations - pending_reservations }}</h3>
+                <p>Reservasi Selesai</p>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 2rem 0;">
+            <a href="{{ url_for('reservation') }}" class="btn btn-primary">Buat Reservasi Baru</a>
+            <a href="{{ url_for('menu') }}" class="btn btn-success">Lihat Menu</a>
+        </div>
+        
+        <h2 style="margin-top: 3rem; margin-bottom: 1rem;">Riwayat Reservasi Anda</h2>
+        
+        {% if reservations %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Waktu</th>
+                        <th>Nama</th>
+                        <th>Jumlah Tamu</th>
+                        <th>Status</th>
+                        <th>Dibuat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in reservations %}
+                    <tr>
+                        <td>{{ reservation.date }}</td>
+                        <td>{{ reservation.time }}</td>
+                        <td>{{ reservation.name }}</td>
+                        <td>{{ reservation.guests }} orang</td>
+                        <td>
+                            <span class="status-badge status-{{ reservation.status }}">
+                                {{ reservation.status }}
+                            </span>
+                        </td>
+                        <td>{{ reservation.created_at[:10] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 8px;">
+            Anda belum memiliki reservasi. <a href="{{ url_for('reservation') }}">Buat reservasi sekarang</a>
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
