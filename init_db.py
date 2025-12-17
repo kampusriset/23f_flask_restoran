@@ -58,6 +58,8 @@ def add_sample_data():
             ('Galette de Bretagne', 'Appetizer', 85000,'Panekuk dengan isian gurih dari Bretagne', 'https://cdn.tasteatlas.com//Images/Dishes/ba0206fa9d884c7dbbce4522a585805b.jpg?w=905&h=510'),
             ('Soufflé au Chocolat', 'Dessert', 70000, 'Kue cokelat ringan dan lembut','https://cdn.tasteatlas.com//images/dishes/ffe89104a97543eb80544c4e0b196bd5.jpg?w=905&h=510'),
             ('Créme Caramel', 'Dessert', 65000, 'Custard dengan krim karamel yang lembut','https://www.tasteatlas.com/Images/Dishes/e0fe68df68e5466e9a1d0f7580415820.jpg?mw=1300')
+            ('Confit de Canard', 'Main Course', 123000, 'Berbahan utama daging bebek yang super empuk.','https://salsawisata.com/wp-content/uploads/2024/01/Confit-de-Canard.webp')
+            ('Langue de Bouef', 'Main Course', 130000, 'Menggunakan lidah sapi sebagai bahan utamanya, yang kemudian dimasak dengan bumbu yang cukup kuat.','https://salsawisata.com/wp-content/uploads/2024/01/menu-makanan-khas-Perancis.webp')
         ]
 
         conn.executemany(
