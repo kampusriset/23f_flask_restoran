@@ -9,6 +9,7 @@ body {
     line-height: 1.6;
     color: #333;
     background-color: #f4f4f4;
+    padding-top: 90px; /* ruang untuk header fixed */
 }
 
 .container {
@@ -17,11 +18,17 @@ body {
     padding: 0 20px;
 }
 
+/* ===== HEADER / NAVBAR ===== */
 .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
     background-color: #2c3e50;
     color: white;
     padding: 1rem 0;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 9999;
 }
 
 .header .container {
@@ -55,6 +62,23 @@ body {
     border-radius: 4px;
 }
 
+/* ===== NAVBAR SHRINK ON SCROLL ===== */
+.header {
+    transition: all 0.3s ease;
+}
+
+.header.shrink {
+    padding: 0.4rem 0;
+}
+
+.header.shrink .logo a {
+    font-size: 1.4rem;
+}
+
+.header.shrink .nav a {
+    padding: 0.3rem 0.8rem;
+}
+
 .btn-login, .btn-register {
     background-color: #3498db;
     padding: 0.5rem 1rem;
@@ -67,9 +91,10 @@ body {
     border-radius: 4px;
 }
 
+/* ===== FLASH MESSAGE ===== */
 .flash-container {
     position: fixed;
-    top: 80px;
+    top: 110px;
     right: 20px;
     z-index: 1000;
     max-width: 400px;
@@ -100,6 +125,7 @@ body {
     padding: 0 5px;
 }
 
+/* ===== MAIN CONTENT ===== */
 .main-content {
     min-height: calc(100vh - 200px);
     padding: 2rem 0;
@@ -114,6 +140,7 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
+/* ===== HERO ===== */
 .hero {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -133,6 +160,7 @@ body {
     margin-bottom: 2rem;
 }
 
+/* ===== FORM ===== */
 .form-container {
     max-width: 500px;
     margin: 2rem auto;
@@ -190,7 +218,7 @@ body {
 .btn-success { background-color: #2ecc71; }
 .btn-danger { background-color: #e74c3c; }
 
-
+/* ===== DASHBOARD ===== */
 .dashboard-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -216,6 +244,7 @@ body {
     color: #666;
 }
 
+/* ===== MENU ===== */
 .menu-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -267,6 +296,7 @@ body {
     margin-top: 1rem;
 }
 
+/* ===== TABLE ===== */
 .table-container {
     overflow-x: auto;
     margin-top: 2rem;
@@ -294,6 +324,7 @@ table tr:hover {
     background-color: #f8f9fa;
 }
 
+/* ===== STATUS ===== */
 .status-badge {
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
@@ -305,6 +336,7 @@ table tr:hover {
 .status-confirmed { background-color: #2ecc71; color: white; }
 .status-cancelled { background-color: #e74c3c; color: white; }
 
+/* ===== FOOTER ===== */
 .footer {
     background-color: #2c3e50;
     color: white;
@@ -336,22 +368,27 @@ table tr:hover {
     color: #bdc3c7;
 }
 
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .header .container {
         flex-direction: column;
         gap: 1rem;
     }
-    
+
     .nav {
         flex-wrap: wrap;
         justify-content: center;
     }
-    
+
     .hero h1 {
         font-size: 2rem;
     }
-    
+
     .menu-grid {
         grid-template-columns: 1fr;
+    }
+
+    body {
+        padding-top: 130px; /* header lebih tinggi di mobile */
     }
 }
