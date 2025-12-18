@@ -162,7 +162,7 @@ body {
 
 /* ===== FORM ===== */
 .form-container {
-    max-width: 500px;
+    max-width: 800px;
     margin: 2rem auto;
     background: white;
     padding: 2rem;
@@ -391,4 +391,36 @@ table tr:hover {
     body {
         padding-top: 130px; /* header lebih tinggi di mobile */
     }
+}
+
+
+
+.dashboard-containerr {
+    max-width: 900px;
+    margin: auto;
+    padding: 2rem;
+}
+
+.dashboard-gridd {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.dashboard-cardd {
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: bold;
+    text-decoration: none;
+    color: #333;
+    transition: 0.3s;
+}
+
+.dashboard-cardd:hover {
+    background: #3498db;
+    color: white;
+    transform: translateY(-5px);
 }

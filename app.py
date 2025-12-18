@@ -20,6 +20,17 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def role_required(role):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if session.get('role') != role :
+                flash('Akses ditolak!', 'danger')
+                return redirect(url_for('login'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
 @app.route('/')
 def index():
     conn = get_db_connection()
@@ -45,8 +56,8 @@ def register():
         conn = get_db_connection()
         try:
             conn.execute(
-                'INSERT INTO users (username, password, email) VALUES (?, ?, ?)',
-                (username, hashed_password, email)
+                'INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)',
+                (username, hashed_password, email, 'customer')
             )
             conn.commit()
             conn.close()
@@ -74,8 +85,16 @@ def login():
         if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
             session['username'] = user['username']
+            session['role'] = user['role']
             flash(f'Selamat datang, {username}!', 'success')
-            return redirect(url_for('dashboard'))
+
+            if user['role'] == 'admin' :
+                return redirect(url_for('admin_dashboard'))
+            elif user['role'] == 'staff' :
+                return redirect(url_for('staff_dashboard'))
+            else : 
+                return redirect(url_for('dashboard'))
+            
         else:
             flash('Username atau password salah', 'danger')
 
@@ -87,8 +106,21 @@ def logout():
     flash('Anda telah logout', 'info')
     return redirect(url_for('index'))
 
+@app.route('/admin/dashboard')
+@login_required
+@role_required('admin')
+def admin_dashboard():
+    return render_template('admin_dashboard.html')
+
+@app.route('/staff/dashboard')
+@login_required
+@role_required('staff')
+def staff_dashboard():
+    return render_template('staff_dashboard.html')
+
 @app.route('/dashboard')
 @login_required
+@role_required('customer')
 def dashboard():
     conn = get_db_connection()
     reservations = conn.execute(
@@ -132,6 +164,7 @@ def menu():
 
 @app.route('/reservation', methods=['GET', 'POST'])
 @login_required
+@role_required('customer')
 def reservation():
     if request.method == 'POST':
         name = request.form['name']

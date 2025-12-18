@@ -1,4 +1,19 @@
 from app import get_db_connection
+from werkzeug.security import generate_password_hash
+
+def create_admin():
+    conn = get_db_connection()
+    admin = conn.execute(
+        "SELECT * FROM users WHERE role = 'admin'"
+    ).fetchone()
+
+    if not admin :
+        conn.execute(
+            'INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)',
+            ('admin', generate_password_hash('admin123'), 'admin@restaurant.com', 'admin')
+        )
+        conn.commit()
+    conn.close()
 
 def init_db():
     conn = get_db_connection()
@@ -9,6 +24,7 @@ def init_db():
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             email TEXT,
+            role TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
@@ -74,3 +90,4 @@ def add_sample_data():
 if __name__ == "__main__":
     init_db()
     add_sample_data()
+    create_admin()
