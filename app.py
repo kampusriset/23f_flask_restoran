@@ -110,7 +110,38 @@ def logout():
 @login_required
 @role_required('admin')
 def admin_dashboard():
-    return render_template('admin_dashboard.html')
+    return render_template('admin/admin_dashboard.html')
+
+
+@app.route('/admin/manage')
+@login_required
+@role_required('admin')
+def admin_manage():
+    return render_template('admin/admin_manage.html')
+
+
+@app.route('/admin/menu')
+@login_required
+@role_required('admin')
+def admin_menu():
+    conn = get_db_connection()
+    menu_items = conn.execute('SELECT * FROM menu').fetchall()
+    conn.close()
+    return render_template('admin/admin_menu.html', menu_items=menu_items)
+
+
+@app.route('/admin/report')
+@login_required
+@role_required('admin')
+def admin_report():
+    conn = get_db_connection()
+    reservations = conn.execute(
+        '''SELECT r.*, u.username FROM reservations r
+           LEFT JOIN users u ON r.user_id = u.id
+           ORDER BY r.created_at DESC'''
+    ).fetchall()
+    conn.close()
+    return render_template('admin/admin_report.html', reservations=reservations)
 
 @app.route('/staff/dashboard')
 @login_required

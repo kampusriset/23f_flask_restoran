@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Menu{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Kelola Menu</h2>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Gambar</th>
+                <th>Nama</th>
+                <th>Kategori</th>
+                <th>Harga</th>
+                <th>Tersedia</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in menu_items %}
+            <tr>
+                <td>{{ item['id'] }}</td>
+                <td><img src="{{ item['image_url'] }}" alt="{{ item['name'] }}" style="height:48px;width:64px;object-fit:cover;border-radius:6px;"></td>
+                <td>{{ item['name'] }}</td>
+                <td>{{ item['category'] }}</td>
+                <td>Rp {{ '{:,}'.format(item['price']) }}</td>
+                <td>{{ 'Ya' if item['available'] else 'Tidak' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6">Tidak ada menu</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

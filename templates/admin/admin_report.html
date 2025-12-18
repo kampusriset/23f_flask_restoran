@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Laporan Reservasi{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Laporan Reservasi</h2>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Nama</th>
+                <th>Email</th>
+                <th>Tanggal</th>
+                <th>Waktu</th>
+                <th>Jumlah</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in reservations %}
+            <tr>
+                <td>{{ r['id'] }}</td>
+                <td>{{ r['username'] or 'Guest' }}</td>
+                <td>{{ r['name'] }}</td>
+                <td>{{ r['email'] }}</td>
+                <td>{{ r['date'] }}</td>
+                <td>{{ r['time'] }}</td>
+                <td>{{ r['guests'] }}</td>
+                <td>{{ r['status'] }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8">Tidak ada reservasi</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
