@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Staff - Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Edit Staff</h2>
+    
+    <div class="form-container" style="max-width: 500px;">
+        <form method="POST" action="{{ url_for('admin_edit_staff', staff_id=staff['id']) }}">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" value="{{ staff['username'] }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="{{ staff['email'] }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password (Kosongkan jika tidak ingin mengubah)</label>
+                <input type="password" id="password" name="password">
+            </div>
+            
+            <div style="display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-success">Simpan Perubahan</button>
+                <a href="{{ url_for('admin_manage') }}" class="btn" style="background-color: #95a5a6;">Batal</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
