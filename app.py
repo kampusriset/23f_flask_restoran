@@ -113,11 +113,102 @@ def admin_dashboard():
     return render_template('admin/admin_dashboard.html')
 
 
-@app.route('/admin/manage')
+@app.route('/admin/manage', methods=['GET'])
 @login_required
 @role_required('admin')
 def admin_manage():
-    return render_template('admin/admin_manage.html')
+    conn = get_db_connection()
+    staff_list = conn.execute(
+        'SELECT * FROM users WHERE role = ?', ('staff',)
+    ).fetchall()
+    conn.close()
+    
+    return render_template('admin/admin_manage.html', staff_list=staff_list)
+
+
+@app.route('/admin/staff/tambah', methods=['GET', 'POST'])
+@login_required
+@role_required('admin')
+def admin_tambah_staff():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        email = request.form.get('email', '')
+        
+        hashed_password = generate_password_hash(password)
+        
+        conn = get_db_connection()
+        try:
+            conn.execute(
+                'INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)',
+                (username, hashed_password, email, 'staff')
+            )
+            conn.commit()
+            conn.close()
+            flash('Staff berhasil ditambahkan!', 'success')
+            return redirect(url_for('admin_manage'))
+        except sqlite3.IntegrityError:
+            conn.close()
+            flash('Username sudah digunakan', 'danger')
+    
+    return render_template('admin/admin_tambah_staff.html')
+
+
+@app.route('/admin/staff/edit/<int:staff_id>', methods=['GET', 'POST'])
+@login_required
+@role_required('admin')
+def admin_edit_staff(staff_id):
+    conn = get_db_connection()
+    staff = conn.execute('SELECT * FROM users WHERE id = ? AND role = ?', (staff_id, 'staff')).fetchone()
+    
+    if not staff:
+        flash('Staff tidak ditemukan', 'danger')
+        return redirect(url_for('admin_manage'))
+    
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form.get('email', '')
+        password = request.form.get('password', '')
+        
+        try:
+            if password:
+                hashed_password = generate_password_hash(password)
+                conn.execute(
+                    'UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?',
+                    (username, email, hashed_password, staff_id)
+                )
+            else:
+                conn.execute(
+                    'UPDATE users SET username = ?, email = ? WHERE id = ?',
+                    (username, email, staff_id)
+                )
+            conn.commit()
+            flash('Staff berhasil diperbarui!', 'success')
+            return redirect(url_for('admin_manage'))
+        except sqlite3.IntegrityError:
+            flash('Username sudah digunakan', 'danger')
+    
+    conn.close()
+    return render_template('admin/admin_edit_staff.html', staff=staff)
+
+
+@app.route('/admin/staff/delete/<int:staff_id>')
+@login_required
+@role_required('admin')
+def admin_delete_staff(staff_id):
+    conn = get_db_connection()
+    staff = conn.execute('SELECT * FROM users WHERE id = ? AND role = ?', (staff_id, 'staff')).fetchone()
+    
+    if not staff:
+        flash('Staff tidak ditemukan', 'danger')
+        return redirect(url_for('admin_manage'))
+    
+    conn.execute('DELETE FROM users WHERE id = ?', (staff_id,))
+    conn.commit()
+    conn.close()
+    
+    flash('Staff berhasil dihapus!', 'success')
+    return redirect(url_for('admin_manage'))
 
 
 @app.route('/admin/menu')
@@ -147,7 +238,7 @@ def admin_report():
 @login_required
 @role_required('staff')
 def staff_dashboard():
-    return render_template('staff_dashboard.html')
+    return render_template('staff/staff_dashboard.html')
 
 @app.route('/dashboard')
 @login_required

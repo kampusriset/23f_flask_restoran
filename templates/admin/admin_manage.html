@@ -1,11 +1,47 @@
 {% extends "base.html" %}
 
-{% block title %}Admin - Manajemen{% endblock %}
+{% block title %}Admin - Manajemen Staff{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h2>Manajemen Staff</h2>
-    <p>page buat menej staff.</p>
-    <p>nanti ada tambah, edit, dan hapus</p>
+    <h2 style="text-align: center;">Manajemen Staff</h2>
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <a href="{{ url_for('admin_tambah_staff') }}" class="btn btn-success">+ Tambah Staff Baru</a>
+    </div>
+
+    <div style="margin-top: 2rem;">
+        <h3>Daftar Staff</h3>
+        {% if staff_list %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Dibuat</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for staff in staff_list %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ staff['username'] }}</td>
+                        <td>{{ staff['email'] }}</td>
+                        <td>{{ staff['created_at'] if staff['created_at'] else '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_edit_staff', staff_id=staff['id']) }}" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">Edit</a>
+                            <a href="{{ url_for('admin_delete_staff', staff_id=staff['id']) }}" class="btn btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" onclick="return confirm('Yakin hapus staff ini?')">Hapus</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="text-align: center; color: #999; padding: 2rem;">Belum ada staff yang ditambahkan.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
