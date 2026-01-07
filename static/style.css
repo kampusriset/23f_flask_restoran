@@ -2,7 +2,10 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    scroll-behavior: smooth;
 }
+
+
 
 body {
     font-family: Arial, sans-serif;
@@ -244,6 +247,25 @@ nav a .btn-logout {
 .btn-primary { background-color: #3498db; }
 .btn-success { background-color: #2ecc71; }
 .btn-danger { background-color: #e74c3c; }
+
+/* Small action buttons used in admin tables */
+.btn-small {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    color: white;
+    text-decoration: none;
+    margin-right: 0.4rem;
+}
+.btn-edit { background-color: #3498db; }
+.btn-delete { background-color: #e74c3c; }
+.btn-toggle-available-yes { background-color: #27ae60; }
+.btn-toggle-available-no { background-color: #e74c3c; }
+
+.admin-controls label { margin-right: 0.25rem; font-weight: 600; }
+.admin-filter-form select { padding: 0.4rem; border-radius: 4px; border: 1px solid #ddd; }
+.table-container { overflow-x: auto; margin-top: 1rem; }
 
 /* ===== DASHBOARD ===== */
 .dashboard-stats {

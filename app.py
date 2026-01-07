@@ -216,9 +216,31 @@ def admin_delete_staff(staff_id):
 @role_required('admin')
 def admin_menu():
     conn = get_db_connection()
-    menu_items = conn.execute('SELECT * FROM menu').fetchall()
+    # filtering and sorting via query params
+    category = request.args.get('category', 'All')
+    sort = request.args.get('sort', 'date_desc')
+
+    base_query = 'SELECT * FROM menu'
+    params = []
+    if category and category != 'All':
+        base_query += ' WHERE category = ?'
+        params.append(category)
+
+    # map sort keys to safe ORDER BY clauses
+    order_map = {
+        'date_desc': 'id DESC',
+        'date_asc': 'id ASC',
+        'name_asc': 'name COLLATE NOCASE ASC',
+        'name_desc': 'name COLLATE NOCASE DESC',
+        'price_asc': 'price ASC',
+        'price_desc': 'price DESC'
+    }
+    order_clause = order_map.get(sort, 'id DESC')
+    query = f"{base_query} ORDER BY {order_clause}"
+
+    menu_items = conn.execute(query, params).fetchall()
     conn.close()
-    return render_template('admin/admin_menu.html', menu_items=menu_items)
+    return render_template('admin/admin_menu.html', menu_items=menu_items, current_category=category, current_sort=sort)
 
 
 @app.route('/admin/menu/tambah', methods=['GET', 'POST'])
