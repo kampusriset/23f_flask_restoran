@@ -5,8 +5,12 @@
 {% block content %}
 <div class="container">
     <h2>Kelola Menu</h2>
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <a href="{{ url_for('admin_tambah_menu') }}" class="btn btn-success">+ Tambah Menu Baru</a>
+    </div>
+
     <a href="{{ url_for('admin_dashboard') }}">Kembali ke Dashboard</a>
-    
+
     <table class="table">
         <thead>
             <tr>
@@ -16,6 +20,7 @@
                 <th>Kategori</th>
                 <th>Harga</th>
                 <th>Tersedia</th>
+                <th>Aksi</th>
             </tr>
         </thead>
         <tbody>
@@ -26,10 +31,18 @@
                 <td>{{ item['name'] }}</td>
                 <td>{{ item['category'] }}</td>
                 <td>Rp {{ '{:,}'.format(item['price']) }}</td>
-                <td>{{ 'Ya' if item['available'] else 'Tidak' }}</td>
+                <td>
+                    <a href="{{ url_for('admin_toggle_menu', menu_id=item['id']) }}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.85rem; background-color: {% if item['available'] %}#27ae60{% else %}#e74c3c{% endif %};">
+                        {{ 'Ya' if item['available'] else 'Tidak' }}
+                    </a>
+                </td>
+                <td>
+                    <a href="{{ url_for('admin_edit_menu', menu_id=item['id']) }}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.85rem; background-color: #3498db;">Edit</a>
+                    <a href="{{ url_for('admin_delete_menu', menu_id=item['id']) }}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.85rem; background-color: #e74c3c;" onclick="return confirm('Yakin ingin menghapus menu ini?');">Hapus</a>
+                </td>
             </tr>
             {% else %}
-            <tr><td colspan="6">Tidak ada menu</td></tr>
+            <tr><td colspan="7">Tidak ada menu</td></tr>
             {% endfor %}
         </tbody>
     </table>

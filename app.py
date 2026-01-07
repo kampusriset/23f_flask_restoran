@@ -221,6 +221,108 @@ def admin_menu():
     return render_template('admin/admin_menu.html', menu_items=menu_items)
 
 
+@app.route('/admin/menu/tambah', methods=['GET', 'POST'])
+@login_required
+@role_required('admin')
+def admin_tambah_menu():
+    if request.method == 'POST':
+        name = request.form['name']
+        category = request.form['category']
+        try:
+            price = int(request.form['price'])
+        except (ValueError, TypeError):
+            flash('Harga harus berupa angka', 'danger')
+            return redirect(url_for('admin_tambah_menu'))
+        description = request.form.get('description', '')
+        image_url = request.form.get('image_url', '')
+        
+        conn = get_db_connection()
+        conn.execute(
+            'INSERT INTO menu (name, category, price, description, image_url, available) VALUES (?, ?, ?, ?, ?, 1)',
+            (name, category, price, description, image_url)
+        )
+        conn.commit()
+        conn.close()
+        
+        flash('Menu berhasil ditambahkan!', 'success')
+        return redirect(url_for('admin_menu'))
+    
+    return render_template('admin/admin_tambah_menu.html')
+
+
+@app.route('/admin/menu/edit/<int:menu_id>', methods=['GET', 'POST'])
+@login_required
+@role_required('admin')
+def admin_edit_menu(menu_id):
+    conn = get_db_connection()
+    menu_item = conn.execute('SELECT * FROM menu WHERE id = ?', (menu_id,)).fetchone()
+    
+    if not menu_item:
+        flash('Menu tidak ditemukan', 'danger')
+        return redirect(url_for('admin_menu'))
+    
+    if request.method == 'POST':
+        name = request.form['name']
+        category = request.form['category']
+        try:
+            price = int(request.form['price'])
+        except (ValueError, TypeError):
+            flash('Harga harus berupa angka', 'danger')
+            return redirect(url_for('admin_edit_menu', menu_id=menu_id))
+        description = request.form.get('description', '')
+        image_url = request.form.get('image_url', '')
+        
+        conn.execute(
+            'UPDATE menu SET name = ?, category = ?, price = ?, description = ?, image_url = ? WHERE id = ?',
+            (name, category, price, description, image_url, menu_id)
+        )
+        conn.commit()
+        flash('Menu berhasil diperbarui!', 'success')
+        return redirect(url_for('admin_menu'))
+    
+    conn.close()
+    return render_template('admin/admin_edit_menu.html', menu=menu_item)
+
+
+@app.route('/admin/menu/delete/<int:menu_id>')
+@login_required
+@role_required('admin')
+def admin_delete_menu(menu_id):
+    conn = get_db_connection()
+    menu_item = conn.execute('SELECT * FROM menu WHERE id = ?', (menu_id,)).fetchone()
+    
+    if not menu_item:
+        flash('Menu tidak ditemukan', 'danger')
+        return redirect(url_for('admin_menu'))
+    
+    conn.execute('DELETE FROM menu WHERE id = ?', (menu_id,))
+    conn.commit()
+    conn.close()
+    
+    flash('Menu berhasil dihapus!', 'success')
+    return redirect(url_for('admin_menu'))
+
+
+@app.route('/admin/menu/toggle/<int:menu_id>')
+@login_required
+@role_required('admin')
+def admin_toggle_menu(menu_id):
+    conn = get_db_connection()
+    menu_item = conn.execute('SELECT * FROM menu WHERE id = ?', (menu_id,)).fetchone()
+    
+    if not menu_item:
+        flash('Menu tidak ditemukan', 'danger')
+        return redirect(url_for('admin_menu'))
+    
+    new_status = 1 if menu_item['available'] == 0 else 0
+    conn.execute('UPDATE menu SET available = ? WHERE id = ?', (new_status, menu_id))
+    conn.commit()
+    conn.close()
+    
+    flash('Status menu berhasil diubah!', 'success')
+    return redirect(url_for('admin_menu'))
+
+
 @app.route('/admin/report')
 @login_required
 @role_required('admin')

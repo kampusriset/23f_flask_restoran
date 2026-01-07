@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Menu - Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Edit Menu</h2>
+    
+    <div class="form-container" style="max-width: 500px;">
+        <form method="POST" action="{{ url_for('admin_edit_menu', menu_id=menu['id']) }}">
+            <div class="form-group">
+                <label for="name">Nama</label>
+                <input type="text" id="name" name="name" value="{{ menu['name'] }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="category">Kategori</label>
+                <input type="text" id="category" name="category" value="{{ menu['category'] }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="price">Harga (Rp)</label>
+                <input type="number" id="price" name="price" value="{{ menu['price'] }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Deskripsi</label>
+                <textarea id="description" name="description" rows="4">{{ menu['description'] }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="image_url">URL Gambar</label>
+                <input type="url" id="image_url" name="image_url" value="{{ menu['image_url'] }}">
+                {% if menu['image_url'] %}
+                <br><br>
+                <small>Preview:</small><br>
+                <img src="{{ menu['image_url'] }}" alt="{{ menu['name'] }}" style="max-width: 200px; border-radius: 6px;">
+                {% endif %}
+            </div>
+            
+            <div style="display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-success">Simpan Perubahan</button>
+                <a href="{{ url_for('admin_menu') }}" class="btn" style="background-color: #95a5a6;">Batal</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
