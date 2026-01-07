@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Menu{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Kelola Menu</h2>
+    <div class="admin-controls" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;gap:1rem;flex-wrap:wrap;">
+        <div>
+            <a href="{{ url_for('admin_tambah_menu') }}" class="btn btn-success">+ Tambah Menu Baru</a>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn">Kembali ke Dashboard</a>
+        </div>
+
+        <form method="GET" action="{{ url_for('admin_menu') }}" class="admin-filter-form" style="display:flex;gap:0.5rem;align-items:center;">
+            <label for="category">Kategori:</label>
+            <select name="category" id="category">
+                {% set c = current_category if current_category is defined else 'All' %}
+                <option value="All" {% if c == 'All' %}selected{% endif %}>Semua</option>
+                <option value="Dessert" {% if c == 'Dessert' %}selected{% endif %}>Dessert</option>
+                <option value="Main Course" {% if c == 'Main Course' %}selected{% endif %}>Main Course</option>
+                <option value="Appetizer" {% if c == 'Appetizer' %}selected{% endif %}>Appetizer</option>
+            </select>
+
+            <label for="sort">Urutkan:</label>
+            {% set s = current_sort if current_sort is defined else 'date_desc' %}
+            <select name="sort" id="sort">
+                <option value="date_desc" {% if s == 'date_desc' %}selected{% endif %}>Tanggal (Terbaru)</option>
+                <option value="date_asc" {% if s == 'date_asc' %}selected{% endif %}>Tanggal (Terlama)</option>
+                <option value="name_asc" {% if s == 'name_asc' %}selected{% endif %}>Nama A-Z</option>
+                <option value="name_desc" {% if s == 'name_desc' %}selected{% endif %}>Nama Z-A</option>
+                <option value="price_asc" {% if s == 'price_asc' %}selected{% endif %}>Harga (Termurah)</option>
+                <option value="price_desc" {% if s == 'price_desc' %}selected{% endif %}>Harga (Termahal)</option>
+            </select>
+
+            <button type="submit" class="btn">Terapkan</button>
+        </form>
+    </div>
+
+    <div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Gambar</th>
+                <th>Nama</th>
+                <th>Kategori</th>
+                <th>Harga</th>
+                <th>Tersedia</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in menu_items %}
+            <tr>
+                <td>{{ item['id'] }}</td>
+                <td>
+                    {% if item['image_url'] %}
+                        <img src="{{ item['image_url'] }}" alt="{{ item['name'] }}" style="height:48px;width:64px;object-fit:cover;border-radius:6px;">
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ item['name'] }}</td>
+                <td>{{ item['category'] }}</td>
+                <td>Rp {{ '{:,}'.format(item['price']) }}</td>
+                <td>
+                    {% if item['available'] %}
+                        <a href="{{ url_for('admin_toggle_menu', menu_id=item['id']) }}" class="btn-small btn-toggle-available-yes">Ya</a>
+                    {% else %}
+                        <a href="{{ url_for('admin_toggle_menu', menu_id=item['id']) }}" class="btn-small btn-toggle-available-no">Tidak</a>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('admin_edit_menu', menu_id=item['id']) }}" class="btn-small btn-edit">Edit</a>
+                    <a href="{{ url_for('admin_delete_menu', menu_id=item['id']) }}" class="btn-small btn-delete" onclick="return confirm('Yakin ingin menghapus menu ini?');">Hapus</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7">Tidak ada menu</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

@@ -17,18 +17,38 @@
             
             <!-- Menu Navigasi -->
             <nav class="nav">
+                {% if session.get('role') not in ['admin', 'staff', 'customer'] %}
                 <a href="{{ url_for('index') }}">Home</a>
-                <a href="{{ url_for('menu') }}">Menu</a>
-                <a href="{{ url_for('about') }}">About</a>
+                    <a href="#menu">Menu</a>
+                    <a href="#tentang-kami">About</a>
+                {% endif %}
+                {% if session.get('role') == 'customer' %}
+                    <a href="{{ url_for('menu') }}">Menu</a>
+                    <a href="{{ url_for('about') }}">About</a>
+                {% endif %}
                 
-                <!-- Link berbeda jika sudah login atau belum -->
-                {% if session.user_id %}
-                    <a href="{{ url_for('dashboard') }}">Dashboard</a>
-                    <a href="{{ url_for('reservation') }}">Reservasi</a>
-                    <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+                
+
+                <!-- menu navbar by role -->
+                {% if session.get('user_id') %}
+                    {% if session.get('role') == 'admin' %}
+                        <a href="{{ url_for('index') }}">Home</a>
+                        <a href="{{ url_for('menu') }}">Menu</a>
+                        <a href="{{ url_for('admin_dashboard') }}">Admin</a>
+                        <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+                    {% elif session.get('role') == 'staff' %}
+                        <a href="{{ url_for('staff_dashboard') }}">Staff</a>
+                        <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                        <a href="{{ url_for('reservation') }}">Reservasi</a>
+                        <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+                    {% endif %}
                 {% else %}
+                <div class="abcd">
                     <a href="{{ url_for('login') }}" class="btn-login">Login</a>
                     <a href="{{ url_for('register') }}" class="btn-register">Register</a>
+                </div>
                 {% endif %}
             </nav>
         </div>

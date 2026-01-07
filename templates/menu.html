@@ -39,10 +39,10 @@
         {% endif %}
         
         <div style="text-align: center; margin-top: 3rem;">
-            {% if session.user_id %}
-            <a href="{{ url_for('reservation') }}" class="btn btn-success">Buat Reservasi Sekarang</a>
-            {% else %}
-            <p>Ingin memesan? <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a> atau <a href="{{ url_for('register') }}" class="btn btn-success">Daftar</a></p>
+            {% if session.get('user_id') and session.get('role') == 'customer' %}
+                <a href="{{ url_for('reservation') }}" class="btn btn-success">Buat Reservasi Sekarang</a>
+            {% elif not session.get('user_id') %}
+                <p>Ingin memesan? <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a> atau <a href="{{ url_for('register') }}" class="btn btn-success">Daftar</a></p>
             {% endif %}
         </div>
     </div>

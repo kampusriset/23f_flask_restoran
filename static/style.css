@@ -2,7 +2,10 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    scroll-behavior: smooth;
 }
+
+
 
 body {
     font-family: Arial, sans-serif;
@@ -24,7 +27,7 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    background-color: #2c3e50;
+    background-color: #ffffff;
     color: white;
     padding: 1rem 0;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -38,7 +41,7 @@ body {
 }
 
 .logo a {
-    color: white;
+    color: #667eea;
     text-decoration: none;
     font-size: 1.8rem;
     font-weight: bold;
@@ -51,13 +54,32 @@ body {
 }
 
 .nav a {
-    color: white;
+    color: #667eea;
     text-decoration: none;
     padding: 0.5rem 1rem;
     transition: background-color 0.3s;
 }
+nav a .btn-logout {
+    color: #ffffff ;
+    text-decoration: none;
+    transition: background-color 0.4s;
+}
+
+
+.abcd {
+    display: flex;
+    gap: 10px;
+}
+
+.abcd a {
+    color: #ffffff ;
+    text-decoration: none;
+    transition: background-color 0.4s;
+    
+}
 
 .nav a:hover {
+    color: rgb(144, 155, 226);
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
 }
@@ -81,12 +103,19 @@ body {
 
 .btn-login, .btn-register {
     background-color: #3498db;
+    
     padding: 0.5rem 1rem;
     border-radius: 4px;
 }
 
+
+.btn-login, .btn-register a {
+    color: white;
+    text-decoration: none;
+}
+
 .btn-logout {
-    background-color: #e74c3c;
+    background-color: #d4ebf2 ;
     padding: 0.5rem 1rem;
     border-radius: 4px;
 }
@@ -148,6 +177,7 @@ body {
     padding: 4rem 2rem;
     border-radius: 8px;
     margin: 2rem auto;
+    margin-top: -65px;
 }
 
 .hero h1 {
@@ -162,7 +192,7 @@ body {
 
 /* ===== FORM ===== */
 .form-container {
-    max-width: 500px;
+    max-width: 800px;
     margin: 2rem auto;
     background: white;
     padding: 2rem;
@@ -217,6 +247,25 @@ body {
 .btn-primary { background-color: #3498db; }
 .btn-success { background-color: #2ecc71; }
 .btn-danger { background-color: #e74c3c; }
+
+/* Small action buttons used in admin tables */
+.btn-small {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    color: white;
+    text-decoration: none;
+    margin-right: 0.4rem;
+}
+.btn-edit { background-color: #3498db; }
+.btn-delete { background-color: #e74c3c; }
+.btn-toggle-available-yes { background-color: #27ae60; }
+.btn-toggle-available-no { background-color: #e74c3c; }
+
+.admin-controls label { margin-right: 0.25rem; font-weight: 600; }
+.admin-filter-form select { padding: 0.4rem; border-radius: 4px; border: 1px solid #ddd; }
+.table-container { overflow-x: auto; margin-top: 1rem; }
 
 /* ===== DASHBOARD ===== */
 .dashboard-stats {
@@ -392,3 +441,41 @@ table tr:hover {
         padding-top: 130px; /* header lebih tinggi di mobile */
     }
 }
+
+
+
+.dashboard-containerr {
+    max-width: 900px;
+    margin: auto;
+    padding: 2rem;
+}
+
+.dashboard-gridd {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.dashboard-cardd {
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: bold;
+    text-decoration: none;
+    color: #333;
+    transition: 0.3s;
+}
+
+.dashboard-cardd:hover {
+    background: #3498db;
+    color: white;
+    transform: translateY(-5px);
+}
+
+.hr {
+    border: none;
+}
+
+

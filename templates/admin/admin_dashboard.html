@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-containerr">
+    <h2>Admin Dashboard</h2>
+    <p>Selamat datang, <b>{{ session.username }}</b></p>
+
+    <div class="dashboard-gridd">
+        <a href="{{ url_for('admin_menu') }}" class="dashboard-cardd">
+            📋 Manajemen Menu
+        </a>
+
+        <a href="{{ url_for('admin_manage') }}" class="dashboard-cardd">
+            👥 Manajemen Staff
+        </a>
+
+        <a href="{{ url_for('admin_report') }}" class="dashboard-cardd">
+            📊 Laporan Reservasi
+        </a>
+    </div>
+</div>
+{% endblock %}
