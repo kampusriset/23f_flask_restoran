@@ -56,6 +56,12 @@ body {
     padding: 0.5rem 1rem;
     transition: background-color 0.3s;
 }
+nav a .btn-logout {
+    color: #ffffff ;
+    text-decoration: none;
+    transition: background-color 0.4s;
+}
+
 
 .abcd {
     display: flex;
@@ -70,7 +76,7 @@ body {
 }
 
 .nav a:hover {
-    color: brown;
+    color: rgb(144, 155, 226);
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
 }
@@ -106,7 +112,7 @@ body {
 }
 
 .btn-logout {
-    background-color: #e74c3c;
+    background-color: #d4ebf2 ;
     padding: 0.5rem 1rem;
     border-radius: 4px;
 }
