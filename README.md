@@ -18,14 +18,18 @@ Aplikasi ini merupakan sistem reservasi restoran yang memudahkan pelanggan untuk
 Aplikasi Le Restaurant dirancang untuk:
 - Membuat Reservasi
 - Melihat List Menu
+- Membuat Menu
+- Menambahkan Akun Staff
 
-Pengguna dapat melihat menu dan membuat reservasi.  
+Admin Dapat Mengelola Menu dan Akun Staff.
+Staff Dapat Mengelola Reservasi.
+Pengguna Melihat Menu Dan Membuat Reservasi.
 
 ---
 
 ## 🧰 Teknologi yang Digunakan
 - **Python** (Flask Framework)
-- **Sqlite3**
+- **MySQL**
 - **HTML, CSS**
 - **JavaScript**
 
