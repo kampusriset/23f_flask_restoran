@@ -1,42 +1,49 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-import sqlite3
+import mysql.connector
 
 app = Flask(__name__)
 app.secret_key = 'lerestaurant123'
 
+
 def get_db_connection():
-    conn = sqlite3.connect('restaurant.db')
-    conn.row_factory = sqlite3.Row
-    return conn
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="",
+        database="restaurant_db"
+    )
+
 
 def login_required(f):
     @wraps(f)
-    def decorated_function(*args, **kwargs):
+    def decorated(*args, **kwargs):
         if 'user_id' not in session:
             flash('Silakan login terlebih dahulu', 'warning')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
-    return decorated_function
+    return decorated
+
 
 def role_required(role):
     def decorator(f):
         @wraps(f)
-        def decorated_function(*args, **kwargs):
-            if session.get('role') != role :
+        def decorated(*args, **kwargs):
+            if session.get('role') != role:
                 flash('Akses ditolak!', 'danger')
                 return redirect(url_for('login'))
             return f(*args, **kwargs)
-        return decorated_function
+        return decorated
     return decorator
+
 
 @app.route('/')
 def index():
     conn = get_db_connection()
-    featured_menu = conn.execute(
-        'SELECT * FROM menu WHERE available = 1 LIMIT 3'
-    ).fetchall()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM menu WHERE available = 1 LIMIT 3")
+    featured_menu = cursor.fetchall()
     conn.close()
     return render_template('index.html', featured_menu=featured_menu)
 
@@ -44,67 +51,66 @@ def index():
 def about():
     return render_template('about.html')
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        email = request.form.get('email', '')
-
-        hashed_password = generate_password_hash(password)
-
         conn = get_db_connection()
+        cursor = conn.cursor()
         try:
-            conn.execute(
-                'INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)',
-                (username, hashed_password, email, 'customer')
+            cursor.execute(
+                "INSERT INTO users (username, password, email, role) VALUES (%s,%s,%s,%s)",
+                (
+                    request.form['username'],
+                    generate_password_hash(request.form['password']),
+                    request.form.get('email', ''),
+                    'customer'
+                )
             )
             conn.commit()
-            conn.close()
-
-            flash('Registrasi berhasil! Silakan login', 'success')
+            flash('Registrasi berhasil!', 'success')
             return redirect(url_for('login'))
-        except sqlite3.IntegrityError:
-            conn.close()
+        except mysql.connector.Error:
             flash('Username sudah digunakan', 'danger')
-
+        finally:
+            conn.close()
     return render_template('register.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-
         conn = get_db_connection()
-        user = conn.execute(
-            'SELECT * FROM users WHERE username = ?', (username,)
-        ).fetchone()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT * FROM users WHERE username=%s",
+            (request.form['username'],)
+        )
+        user = cursor.fetchone()
         conn.close()
 
-        if user and check_password_hash(user['password'], password):
-            session['user_id'] = user['id']
-            session['username'] = user['username']
-            session['role'] = user['role']
-            flash(f'Selamat datang, {username}!', 'success')
-
-            if user['role'] == 'admin' :
+        if user and check_password_hash(user['password'], request.form['password']):
+            session.update({
+                'user_id': user['id'],
+                'username': user['username'],
+                'role': user['role']
+            })
+            if user['role'] == 'admin':
                 return redirect(url_for('admin_dashboard'))
-            elif user['role'] == 'staff' :
+            if user['role'] == 'staff':
                 return redirect(url_for('staff_dashboard'))
-            else : 
-                return redirect(url_for('dashboard'))
-            
-        else:
-            flash('Username atau password salah', 'danger')
+            return redirect(url_for('dashboard'))
 
+        flash('Username atau password salah', 'danger')
     return render_template('login.html')
+
 
 @app.route('/logout')
 def logout():
     session.clear()
     flash('Anda telah logout', 'info')
     return redirect(url_for('index'))
+
 
 @app.route('/admin/dashboard')
 @login_required
@@ -113,16 +119,15 @@ def admin_dashboard():
     return render_template('admin/admin_dashboard.html')
 
 
-@app.route('/admin/manage', methods=['GET'])
+@app.route('/admin/manage')
 @login_required
 @role_required('admin')
 def admin_manage():
     conn = get_db_connection()
-    staff_list = conn.execute(
-        'SELECT * FROM users WHERE role = ?', ('staff',)
-    ).fetchall()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM users WHERE role=%s", ('staff',))
+    staff_list = cursor.fetchall()
     conn.close()
-    
     return render_template('admin/admin_manage.html', staff_list=staff_list)
 
 
@@ -131,25 +136,20 @@ def admin_manage():
 @role_required('admin')
 def admin_tambah_staff():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        email = request.form.get('email', '')
-        
-        hashed_password = generate_password_hash(password)
-        
         conn = get_db_connection()
+        cursor = conn.cursor()
         try:
-            conn.execute(
-                'INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)',
-                (username, hashed_password, email, 'staff')
+            cursor.execute(
+                "INSERT INTO users (username, password, email, role) VALUES (%s, %s, %s, %s)",
+                (request.form['username'], generate_password_hash(request.form['password']), request.form.get('email', ''), 'staff')
             )
             conn.commit()
-            conn.close()
             flash('Staff berhasil ditambahkan!', 'success')
-            return redirect(url_for('admin_manage'))
-        except sqlite3.IntegrityError:
             conn.close()
+            return redirect(url_for('admin_manage'))
+        except mysql.connector.Error:
             flash('Username sudah digunakan', 'danger')
+            conn.close()
     
     return render_template('admin/admin_tambah_staff.html')
 
@@ -159,10 +159,13 @@ def admin_tambah_staff():
 @role_required('admin')
 def admin_edit_staff(staff_id):
     conn = get_db_connection()
-    staff = conn.execute('SELECT * FROM users WHERE id = ? AND role = ?', (staff_id, 'staff')).fetchone()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute('SELECT * FROM users WHERE id = %s AND role = %s', (staff_id, 'staff'))
+    staff = cursor.fetchone()
     
     if not staff:
         flash('Staff tidak ditemukan', 'danger')
+        conn.close()
         return redirect(url_for('admin_manage'))
     
     if request.method == 'POST':
@@ -173,19 +176,20 @@ def admin_edit_staff(staff_id):
         try:
             if password:
                 hashed_password = generate_password_hash(password)
-                conn.execute(
-                    'UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?',
+                cursor.execute(
+                    'UPDATE users SET username = %s, email = %s, password = %s WHERE id = %s',
                     (username, email, hashed_password, staff_id)
                 )
             else:
-                conn.execute(
-                    'UPDATE users SET username = ?, email = ? WHERE id = ?',
+                cursor.execute(
+                    'UPDATE users SET username = %s, email = %s WHERE id = %s',
                     (username, email, staff_id)
                 )
             conn.commit()
             flash('Staff berhasil diperbarui!', 'success')
+            conn.close()
             return redirect(url_for('admin_manage'))
-        except sqlite3.IntegrityError:
+        except mysql.connector.Error:
             flash('Username sudah digunakan', 'danger')
     
     conn.close()
@@ -197,13 +201,16 @@ def admin_edit_staff(staff_id):
 @role_required('admin')
 def admin_delete_staff(staff_id):
     conn = get_db_connection()
-    staff = conn.execute('SELECT * FROM users WHERE id = ? AND role = ?', (staff_id, 'staff')).fetchone()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute('SELECT * FROM users WHERE id = %s AND role = %s', (staff_id, 'staff'))
+    staff = cursor.fetchone()
     
     if not staff:
         flash('Staff tidak ditemukan', 'danger')
+        conn.close()
         return redirect(url_for('admin_manage'))
     
-    conn.execute('DELETE FROM users WHERE id = ?', (staff_id,))
+    cursor.execute('DELETE FROM users WHERE id = %s', (staff_id,))
     conn.commit()
     conn.close()
     
@@ -216,29 +223,29 @@ def admin_delete_staff(staff_id):
 @role_required('admin')
 def admin_menu():
     conn = get_db_connection()
-    # filtering and sorting via query params
+    cursor = conn.cursor(dictionary=True)
     category = request.args.get('category', 'All')
     sort = request.args.get('sort', 'date_desc')
 
     base_query = 'SELECT * FROM menu'
     params = []
     if category and category != 'All':
-        base_query += ' WHERE category = ?'
+        base_query += ' WHERE category = %s'
         params.append(category)
 
-    # map sort keys to safe ORDER BY clauses
     order_map = {
         'date_desc': 'id DESC',
         'date_asc': 'id ASC',
-        'name_asc': 'name COLLATE NOCASE ASC',
-        'name_desc': 'name COLLATE NOCASE DESC',
+        'name_asc': 'name ASC',
+        'name_desc': 'name DESC',
         'price_asc': 'price ASC',
         'price_desc': 'price DESC'
     }
     order_clause = order_map.get(sort, 'id DESC')
     query = f"{base_query} ORDER BY {order_clause}"
 
-    menu_items = conn.execute(query, params).fetchall()
+    cursor.execute(query, params)
+    menu_items = cursor.fetchall()
     conn.close()
     return render_template('admin/admin_menu.html', menu_items=menu_items, current_category=category, current_sort=sort)
 
@@ -259,8 +266,9 @@ def admin_tambah_menu():
         image_url = request.form.get('image_url', '')
         
         conn = get_db_connection()
-        conn.execute(
-            'INSERT INTO menu (name, category, price, description, image_url, available) VALUES (?, ?, ?, ?, ?, 1)',
+        cursor = conn.cursor()
+        cursor.execute(
+            'INSERT INTO menu (name, category, price, description, image_url, available) VALUES (%s, %s, %s, %s, %s, 1)',
             (name, category, price, description, image_url)
         )
         conn.commit()
@@ -277,10 +285,13 @@ def admin_tambah_menu():
 @role_required('admin')
 def admin_edit_menu(menu_id):
     conn = get_db_connection()
-    menu_item = conn.execute('SELECT * FROM menu WHERE id = ?', (menu_id,)).fetchone()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute('SELECT * FROM menu WHERE id = %s', (menu_id,))
+    menu_item = cursor.fetchone()
     
     if not menu_item:
         flash('Menu tidak ditemukan', 'danger')
+        conn.close()
         return redirect(url_for('admin_menu'))
     
     if request.method == 'POST':
@@ -290,16 +301,18 @@ def admin_edit_menu(menu_id):
             price = int(request.form['price'])
         except (ValueError, TypeError):
             flash('Harga harus berupa angka', 'danger')
+            conn.close()
             return redirect(url_for('admin_edit_menu', menu_id=menu_id))
         description = request.form.get('description', '')
         image_url = request.form.get('image_url', '')
         
-        conn.execute(
-            'UPDATE menu SET name = ?, category = ?, price = ?, description = ?, image_url = ? WHERE id = ?',
+        cursor.execute(
+            'UPDATE menu SET name = %s, category = %s, price = %s, description = %s, image_url = %s WHERE id = %s',
             (name, category, price, description, image_url, menu_id)
         )
         conn.commit()
         flash('Menu berhasil diperbarui!', 'success')
+        conn.close()
         return redirect(url_for('admin_menu'))
     
     conn.close()
@@ -311,13 +324,16 @@ def admin_edit_menu(menu_id):
 @role_required('admin')
 def admin_delete_menu(menu_id):
     conn = get_db_connection()
-    menu_item = conn.execute('SELECT * FROM menu WHERE id = ?', (menu_id,)).fetchone()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute('SELECT * FROM menu WHERE id = %s', (menu_id,))
+    menu_item = cursor.fetchone()
     
     if not menu_item:
         flash('Menu tidak ditemukan', 'danger')
+        conn.close()
         return redirect(url_for('admin_menu'))
     
-    conn.execute('DELETE FROM menu WHERE id = ?', (menu_id,))
+    cursor.execute('DELETE FROM menu WHERE id = %s', (menu_id,))
     conn.commit()
     conn.close()
     
@@ -330,14 +346,17 @@ def admin_delete_menu(menu_id):
 @role_required('admin')
 def admin_toggle_menu(menu_id):
     conn = get_db_connection()
-    menu_item = conn.execute('SELECT * FROM menu WHERE id = ?', (menu_id,)).fetchone()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute('SELECT * FROM menu WHERE id = %s', (menu_id,))
+    menu_item = cursor.fetchone()
     
     if not menu_item:
         flash('Menu tidak ditemukan', 'danger')
+        conn.close()
         return redirect(url_for('admin_menu'))
     
     new_status = 1 if menu_item['available'] == 0 else 0
-    conn.execute('UPDATE menu SET available = ? WHERE id = ?', (new_status, menu_id))
+    cursor.execute('UPDATE menu SET available = %s WHERE id = %s', (new_status, menu_id))
     conn.commit()
     conn.close()
     
@@ -350,13 +369,16 @@ def admin_toggle_menu(menu_id):
 @role_required('admin')
 def admin_report():
     conn = get_db_connection()
-    reservations = conn.execute(
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(
         '''SELECT r.*, u.username FROM reservations r
            LEFT JOIN users u ON r.user_id = u.id
            ORDER BY r.created_at DESC'''
-    ).fetchall()
+    )
+    reservations = cursor.fetchall()
     conn.close()
     return render_template('admin/admin_report.html', reservations=reservations)
+
 
 @app.route('/staff/dashboard')
 @login_required
@@ -364,15 +386,18 @@ def admin_report():
 def staff_dashboard():
     return render_template('staff/staff_dashboard.html')
 
+
 @app.route('/dashboard')
 @login_required
 @role_required('customer')
 def dashboard():
     conn = get_db_connection()
-    reservations = conn.execute(
-        'SELECT * FROM reservations WHERE user_id = ? ORDER BY created_at DESC',
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT * FROM reservations WHERE user_id = %s ORDER BY created_at DESC',
         (session['user_id'],)
-    ).fetchall()
+    )
+    reservations = cursor.fetchall()
 
     total_reservations = len(reservations)
     pending_reservations = len([r for r in reservations if r['status'] == 'pending'])
@@ -383,23 +408,28 @@ def dashboard():
                            total_reservations=total_reservations,
                            pending_reservations=pending_reservations)
 
+
 @app.route('/menu')
 def menu():
     conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
     category = request.args.get('category', '')
     if category:
-        menu_items = conn.execute(
-            'SELECT * FROM menu WHERE category = ? AND available = 1',
+        cursor.execute(
+            'SELECT * FROM menu WHERE category = %s AND available = 1',
             (category,)
-        ).fetchall()
+        )
+        menu_items = cursor.fetchall()
     else:
-        menu_items = conn.execute(
+        cursor.execute(
             'SELECT * FROM menu WHERE available = 1'
-        ).fetchall()
+        )
+        menu_items = cursor.fetchall()
 
-    categories = conn.execute(
+    cursor.execute(
         'SELECT DISTINCT category FROM menu'
-    ).fetchall()
+    )
+    categories = cursor.fetchall()
 
     conn.close()
 
@@ -407,6 +437,7 @@ def menu():
                            menu_items=menu_items,
                            categories=categories,
                            current_category=category)
+
 
 @app.route('/reservation', methods=['GET', 'POST'])
 @login_required
@@ -422,10 +453,11 @@ def reservation():
         message = request.form.get('message', '')
 
         conn = get_db_connection()
-        conn.execute(
+        cursor = conn.cursor()
+        cursor.execute(
             '''INSERT INTO reservations 
                (user_id, name, email, phone, date, time, guests, message) 
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s)''',
             (session['user_id'], name, email, phone, date, time, guests, message)
         )
         conn.commit()

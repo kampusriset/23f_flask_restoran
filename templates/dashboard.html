@@ -54,7 +54,7 @@
                                 {{ reservation.status }}
                             </span>
                         </td>
-                        <td>{{ reservation.created_at[:10] }}</td>
+                       <td>{{ reservation.created_at.strftime('%Y-%m-%d') if reservation.created_at else '-' }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
