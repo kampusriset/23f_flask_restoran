@@ -21,10 +21,6 @@ Aplikasi Le Restaurant dirancang untuk:
 - Membuat Menu
 - Menambahkan Akun Staff
 
-Admin Dapat Mengelola Menu dan Akun Staff.
-Staff Dapat Mengelola Reservasi.
-Pengguna Melihat Menu Dan Membuat Reservasi.
-
 ---
 
 ## 🧰 Teknologi yang Digunakan
