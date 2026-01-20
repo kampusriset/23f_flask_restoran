@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riwayat Reservasi - Le Restaurant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: white;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        
+        .btn-back {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .btn-back:hover {
+            background: #4b5563;
+        }
+        
+        .btn-download {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-download:hover {
+            background: #059669;
+        }
+        
+        .print-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #d4a574;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #8b4513;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .user-info {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-left: 4px solid #d4a574;
+        }
+        
+        .user-info p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        
+        thead {
+            background-color: #d4a574;
+            color: white;
+        }
+        
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            border: 1px solid #ccc;
+        }
+        
+        td {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+        }
+        
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .status-pending {
+            background-color: #fbbf24;
+            color: white;
+        }
+        
+        .status-approved {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .status-rejected {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .status-completed {
+            background-color: #6366f1;
+            color: white;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .controls {
+                display: none;
+            }
+            
+            .print-container {
+                padding: 0;
+            }
+            
+            table {
+                page-break-inside: avoid;
+            }
+            
+            tr {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-back">← Kembali ke Dashboard</a>
+        <a href="{{ url_for('pdf_reservations') }}" class="btn btn-download">⬇️ Download PDF</a>
+    </div>
+    
+    <div class="print-container">
+        <div class="header">
+            <h1>🍽️ Le Restaurant</h1>
+            <p>Riwayat Reservasi</p>
+        </div>
+        
+        <div class="user-info">
+            <p><strong>Nama Pengguna:</strong> {{ username }}</p>
+            <p><strong>Tanggal Cetak:</strong> {{ now.strftime('%d %B %Y - %H:%M') }}</p>
+            <p><strong>Total Reservasi:</strong> {{ reservations|length }}</p>
+        </div>
+        
+        {% if reservations %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Waktu</th>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>Tamu</th>
+                    <th>Status</th>
+                    <th>Dibuat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reservation in reservations %}
+                <tr>
+                    <td>{{ reservation.date }}</td>
+                    <td>{{ reservation.time }}</td>
+                    <td>{{ reservation.name }}</td>
+                    <td>{{ reservation.email }}</td>
+                    <td>{{ reservation.guests }} orang</td>
+                    <td>
+                        <span class="status-badge status-{{ reservation.status }}">
+                            {{ reservation.status|upper }}
+                        </span>
+                    </td>
+                    <td>{{ reservation.created_at.strftime('%d/%m/%Y') if reservation.created_at else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-data">
+            <p>Anda belum memiliki riwayat reservasi.</p>
+        </div>
+        {% endif %}
+        
+        <div class="footer">
+            <p>Dokumen ini dicetak dari Le Restaurant Management System</p>
+            <p>© 2024 Le Restaurant - All Rights Reserved</p>
+        </div>
+    </div>
+</body>
+</html>

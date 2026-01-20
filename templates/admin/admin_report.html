@@ -5,8 +5,39 @@
 {% block content %}
 <div class="container">
     <h2>Laporan Reservasi</h2>
-    <a href="{{ url_for('admin_dashboard') }}" class="btn">Kembali ke Dashboard</a>
+    <div style="margin-bottom: 1rem;">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn">Kembali ke Dashboard</a>
+        <a href="{{ url_for('print_admin_report') }}" class="btn" style="background: #6366f1; color: white; text-decoration: none; padding: 0.5rem 1.5rem; border-radius: 4px; display: inline-block; margin-left: 0.5rem; font-weight: bold;">🖨️ Print Laporan</a>
+    </div>
 
+    <!-- Charts Section -->
+    <div style="margin: 3rem 0;">
+        <div style="margin-bottom: 3rem; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0;">Grafik Reservasi - 30 Hari Terakhir</h3>
+                <button id="toggleLineChartBtn" onclick="toggleLineChart()" style="padding: 0.5rem 1rem; background: #d4a574; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.3s;">
+                    Sembunyikan
+                </button>
+            </div>
+            <div id="lineChartContainer" style="position: relative; height: 400px;">
+                <canvas id="lineChart"></canvas>
+            </div>
+        </div>
+
+        <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0;">Status Reservasi</h3>
+                <button id="togglePieChartBtn" onclick="togglePieChart()" style="padding: 0.5rem 1rem; background: #d4a574; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.3s;">
+                    Sembunyikan
+                </button>
+            </div>
+            <div id="pieChartContainer" style="position: relative; height: 400px; max-width: 500px;">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <h3 style="margin-top: 3rem;">Daftar Reservasi</h3>
     <table class="table">
         <thead>
             <tr>
@@ -38,4 +69,134 @@
         </tbody>
     </table>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Toggle Chart Visibility
+    let lineChartVisible = localStorage.getItem('adminLineChartVisible') !== 'false';
+    let pieChartVisible = localStorage.getItem('adminPieChartVisible') !== 'false';
+    let lineChartInstance = null;
+    let pieChartInstance = null;
+
+    function toggleLineChart() {
+        const lineChartContainer = document.getElementById('lineChartContainer');
+        const toggleBtn = document.getElementById('toggleLineChartBtn');
+        
+        lineChartVisible = !lineChartVisible;
+        localStorage.setItem('adminLineChartVisible', lineChartVisible);
+        
+        if (lineChartVisible) {
+            lineChartContainer.style.display = 'block';
+            toggleBtn.textContent = 'Sembunyikan';
+        } else {
+            lineChartContainer.style.display = 'none';
+            toggleBtn.textContent = 'Tampilkan';
+        }
+    }
+
+    function togglePieChart() {
+        const pieChartContainer = document.getElementById('pieChartContainer');
+        const toggleBtn = document.getElementById('togglePieChartBtn');
+        
+        pieChartVisible = !pieChartVisible;
+        localStorage.setItem('adminPieChartVisible', pieChartVisible);
+        
+        if (pieChartVisible) {
+            pieChartContainer.style.display = 'block';
+            toggleBtn.textContent = 'Sembunyikan';
+        } else {
+            pieChartContainer.style.display = 'none';
+            toggleBtn.textContent = 'Tampilkan';
+        }
+    }
+
+    // Initialize chart visibility on page load
+    if (!lineChartVisible) {
+        document.getElementById('lineChartContainer').style.display = 'none';
+        document.getElementById('toggleLineChartBtn').textContent = 'Tampilkan';
+    }
+    if (!pieChartVisible) {
+        document.getElementById('pieChartContainer').style.display = 'none';
+        document.getElementById('togglePieChartBtn').textContent = 'Tampilkan';
+    }
+
+    // Fetch data from API
+    fetch('{{ url_for("chart_data_admin") }}')
+        .then(response => response.json())
+        .then(data => {
+            // Line Chart
+            const lineCtx = document.getElementById('lineChart').getContext('2d');
+            lineChartInstance = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: data.line_chart.labels,
+                    datasets: [{
+                        label: 'Total Reservasi',
+                        data: data.line_chart.data,
+                        borderColor: '#d4a574',
+                        backgroundColor: 'rgba(212, 165, 116, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#d4a574',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                font: { size: 12 },
+                                padding: 15
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Pie Chart
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            const pieColors = ['#10b981', '#f59e0b', '#ef4444'];
+            pieChartInstance = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.status_chart.labels,
+                    datasets: [{
+                        data: data.status_chart.data,
+                        backgroundColor: pieColors,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { size: 12 },
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error loading chart data:', error));
+</script>
+
 {% endblock %}

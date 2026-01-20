@@ -9,6 +9,7 @@
         <div>
             <a href="{{ url_for('admin_tambah_menu') }}" class="btn btn-success">+ Tambah Menu Baru</a>
             <a href="{{ url_for('admin_dashboard') }}" class="btn">Kembali ke Dashboard</a>
+            <a href="{{ url_for('print_menu') }}" class="btn" style="background: #6366f1; color: white; text-decoration: none; padding: 0.5rem 1.5rem; border-radius: 4px; display: inline-block; margin-left: 0.5rem; font-weight: bold;">🖨️ Print Menu</a>
         </div>
 
         <form method="GET" action="{{ url_for('admin_menu') }}" class="admin-filter-form" style="display:flex;gap:0.5rem;align-items:center;">

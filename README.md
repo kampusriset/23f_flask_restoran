@@ -71,7 +71,9 @@ pip3 install -r requirements.txt
 ```
 jika menggunakan pip3 di linux jika tidak maka sama seperti windows
 
-### 6. Jalankan Aplikasi
+### 6. Jalankan MySQL
+
+### 7. Jalankan Aplikasi
 ### - windows
 ```
 python app.py

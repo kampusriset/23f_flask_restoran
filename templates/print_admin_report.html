@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Reservasi - Le Restaurant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: white;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        
+        .btn-back {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .btn-back:hover {
+            background: #4b5563;
+        }
+        
+        .btn-download {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-download:hover {
+            background: #059669;
+        }
+        
+        .print-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #d4a574;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #8b4513;
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        
+        .header h2 {
+            color: #666;
+            font-size: 20px;
+            font-weight: normal;
+        }
+        
+        .report-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #d4a574;
+        }
+        
+        .report-info p {
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        
+        .report-info strong {
+            color: #8b4513;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        
+        thead {
+            background-color: #d4a574;
+            color: white;
+        }
+        
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            border: 1px solid #ccc;
+        }
+        
+        td {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            font-size: 13px;
+        }
+        
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            display: inline-block;
+        }
+        
+        .status-pending {
+            background-color: #fbbf24;
+            color: white;
+        }
+        
+        .status-approved {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .status-rejected {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .status-completed {
+            background-color: #6366f1;
+            color: white;
+        }
+        
+        .statistics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-box {
+            padding: 15px;
+            background: white;
+            border: 2px solid #d4a574;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #d4a574;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .controls {
+                display: none;
+            }
+            
+            .print-container {
+                padding: 0;
+            }
+            
+            table {
+                page-break-inside: avoid;
+            }
+            
+            tr {
+                page-break-inside: avoid;
+            }
+            
+            .statistics {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <a href="{{ url_for('admin_report') }}" class="btn btn-back">← Kembali ke Laporan</a>
+        <a href="{{ url_for('pdf_admin_report') }}" class="btn btn-download">⬇️ Download PDF</a>
+    </div>
+    
+    <div class="print-container">
+        <div class="header">
+            <h1>🍽️ Le Restaurant</h1>
+            <h2>Laporan Reservasi Lengkap</h2>
+        </div>
+        
+        <div class="report-info">
+            <div>
+                <p><strong>Tanggal Cetak:</strong> {{ now.strftime('%d %B %Y') }}</p>
+                <p><strong>Waktu Cetak:</strong> {{ now.strftime('%H:%M:%S') }}</p>
+            </div>
+            <div>
+                <p><strong>Total Reservasi:</strong> {{ reservations|length }}</p>
+                <p><strong>Dibuat oleh:</strong> Admin</p>
+            </div>
+        </div>
+        
+        {% if reservations %}
+        <div class="statistics">
+            <div class="stat-box">
+                <div class="stat-number">{{ reservations|length }}</div>
+                <div class="stat-label">Total Reservasi</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ reservations|selectattr('status', 'equalto', 'pending')|list|length }}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ reservations|selectattr('status', 'equalto', 'approved')|list|length }}</div>
+                <div class="stat-label">Approved</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ reservations|selectattr('status', 'equalto', 'completed')|list|length }}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>Tanggal</th>
+                    <th>Waktu</th>
+                    <th>Tamu</th>
+                    <th>Status</th>
+                    <th>Dibuat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reservations %}
+                <tr>
+                    <td>{{ r.id }}</td>
+                    <td>{{ r.username or 'Guest' }}</td>
+                    <td>{{ r.name }}</td>
+                    <td>{{ r.email }}</td>
+                    <td>{{ r.date }}</td>
+                    <td>{{ r.time }}</td>
+                    <td>{{ r.guests }} orang</td>
+                    <td>
+                        <span class="status-badge status-{{ r.status }}">
+                            {{ r.status|upper }}
+                        </span>
+                    </td>
+                    <td>{{ r.created_at.strftime('%d/%m/%Y') if r.created_at else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-data">
+            <p>Tidak ada data reservasi untuk ditampilkan.</p>
+        </div>
+        {% endif %}
+        
+        <div class="footer">
+            <p>Dokumen ini dicetak dari Le Restaurant Management System</p>
+            <p>© 2024 Le Restaurant - All Rights Reserved</p>
+        </div>
+    </div>
+</body>
+</html>
