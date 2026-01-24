@@ -210,3 +210,7 @@ __marimo__/
 *.db
 *.sqlite
 *.sqlite3
+
+# User uploaded files (menu images)
+static/menu_images/*
+!static/menu_images/.gitkeep

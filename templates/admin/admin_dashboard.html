@@ -20,5 +20,118 @@
             📊 Laporan Reservasi
         </a>
     </div>
+
+    <!-- Chart Section -->
+    <div style="margin: 3rem 0; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h2 style="margin-top: 0;">Grafik Reservasi (30 Hari Lalu & 30 Hari Ke Depan)</h2>
+        <div id="lineChartContainer" style="position: relative; height: 400px;">
+            <canvas id="reservationChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Status Chart Section -->
+    <div style="margin: 3rem 0; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h2 style="margin-top: 0;">Status Reservasi</h2>
+        <div id="statusChartContainer" style="position: relative; height: 400px;">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Fetch data from API
+    fetch('{{ url_for("chart_data_admin") }}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('API Error:', data.error);
+                return;
+            }
+            
+            // Line Chart
+            const ctxLine = document.getElementById('reservationChart').getContext('2d');
+            new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: data.line_chart.labels,
+                    datasets: [{
+                        label: 'Jumlah Reservasi',
+                        data: data.line_chart.data,
+                        borderColor: '#d4a574',
+                        backgroundColor: 'rgba(212, 165, 116, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#d4a574',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                font: { size: 12 },
+                                padding: 15
+                            }
+                        },
+                        title: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Pie Chart for Status
+            const ctxStatus = document.getElementById('statusChart').getContext('2d');
+            new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: data.status_chart.labels,
+                    datasets: [{
+                        data: data.status_chart.data,
+                        backgroundColor: [
+                            '#ffc107',
+                            '#28a745',
+                            '#dc3545',
+                            '#6c757d'
+                        ],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                font: { size: 12 },
+                                padding: 15
+                            }
+                        },
+                        title: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error loading chart data:', error));
+</script>
+
 {% endblock %}

@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_file
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from functools import wraps
 import mysql.connector
 from datetime import datetime, timedelta
@@ -9,6 +10,20 @@ import os
 
 app = Flask(__name__)
 app.secret_key = 'lerestaurant123'
+
+# File Upload Configuration
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'menu_images')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
+
+# Create upload folder if it doesn't exist
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def get_db_connection():
@@ -288,6 +303,17 @@ def admin_tambah_menu():
         description = request.form.get('description', '')
         image_url = request.form.get('image_url', '')
         
+        # Handle file upload
+        if 'image_file' in request.files:
+            file = request.files['image_file']
+            if file and file.filename != '' and allowed_file(file.filename):
+                filename = secure_filename(f"{name}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}")
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                image_url = f'/static/menu_images/{filename}'
+            elif file and file.filename != '':
+                flash('File harus berupa gambar (PNG, JPG, JPEG, GIF)', 'danger')
+                return redirect(url_for('admin_tambah_menu'))
+        
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(
@@ -328,6 +354,18 @@ def admin_edit_menu(menu_id):
             return redirect(url_for('admin_edit_menu', menu_id=menu_id))
         description = request.form.get('description', '')
         image_url = request.form.get('image_url', '')
+        
+        # Handle file upload
+        if 'image_file' in request.files:
+            file = request.files['image_file']
+            if file and file.filename != '' and allowed_file(file.filename):
+                filename = secure_filename(f"{name}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}")
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                image_url = f'/static/menu_images/{filename}'
+            elif file and file.filename != '':
+                flash('File harus berupa gambar (PNG, JPG, JPEG, GIF)', 'danger')
+                conn.close()
+                return redirect(url_for('admin_edit_menu', menu_id=menu_id))
         
         cursor.execute(
             'UPDATE menu SET name = %s, category = %s, price = %s, description = %s, image_url = %s WHERE id = %s',
@@ -502,47 +540,61 @@ def reservation():
 @login_required
 @role_required('customer')
 def chart_data():
-    """API untuk menampilkan data grafik reservasi user"""
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    
-    # Query untuk mendapatkan reservasi user dalam 30 hari terakhir
-    cursor.execute(
-        '''SELECT DATE(date) as reservation_date, COUNT(*) as count 
-           FROM reservations 
-           WHERE user_id = %s AND date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-           GROUP BY DATE(date)
-           ORDER BY DATE(date) ASC''',
-        (session['user_id'],)
-    )
-    data = cursor.fetchall()
-    conn.close()
-    
-    # Format data untuk Chart.js
-    labels = []
-    counts = []
-    
-    # Jika tidak ada data, buat range 30 hari terakhir dengan nilai 0
-    if not data:
-        for i in range(30, -1, -1):
-            date = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
-            labels.append(date)
-            counts.append(0)
-    else:
-        # Buat dictionary untuk data yang ada
-        data_dict = {item['reservation_date'].strftime('%Y-%m-%d'): item['count'] for item in data}
+    """API untuk menampilkan data grafik reservasi user - 30 hari lalu + 30 hari ke depan"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
         
-        # Fill dalam 30 hari dengan data yang ada atau 0
-        for i in range(30, -1, -1):
-            date = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
-            labels.append(date)
-            counts.append(data_dict.get(date, 0))
-    
-    return jsonify({
-        'labels': labels,
-        'data': counts,
-        'title': 'Reservasi Anda - 30 Hari Terakhir'
-    })
+        # Query untuk mendapatkan reservasi user dalam 30 hari lalu dan 30 hari ke depan
+        cursor.execute(
+            '''SELECT DATE(date) as reservation_date, COUNT(*) as count 
+               FROM reservations 
+               WHERE user_id = %s 
+               AND date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+               AND date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+               GROUP BY DATE(date)
+               ORDER BY DATE(date) ASC''',
+            (session['user_id'],)
+        )
+        data = cursor.fetchall()
+        conn.close()
+        
+        # Format data untuk Chart.js
+        labels = []
+        counts = []
+        
+        # Jika tidak ada data, buat range 30 hari lalu + 30 hari ke depan dengan nilai 0
+        if not data:
+            for i in range(30, -31, -1):
+                date = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
+                labels.append(date)
+                counts.append(0)
+        else:
+            # Buat dictionary untuk data yang ada
+            data_dict = {}
+            for item in data:
+                date_key = item['reservation_date'] if isinstance(item['reservation_date'], str) else item['reservation_date'].strftime('%Y-%m-%d')
+                data_dict[date_key] = item['count']
+            
+            # Fill dalam 30 hari lalu + 30 hari ke depan dengan data yang ada atau 0
+            for i in range(30, -31, -1):
+                date = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
+                labels.append(date)
+                counts.append(data_dict.get(date, 0))
+        
+        return jsonify({
+            'labels': labels,
+            'data': counts,
+            'title': 'Reservasi Anda - 30 Hari Lalu & 30 Hari Ke Depan'
+        })
+    except Exception as e:
+        print(f"Error in chart_data: {e}")
+        return jsonify({
+            'labels': [],
+            'data': [],
+            'title': 'Reservasi Anda - 30 Hari Lalu & 30 Hari Ke Depan',
+            'error': str(e)
+        }), 500
 
 
 @app.route('/api/chart-data-admin')
@@ -550,63 +602,85 @@ def chart_data():
 @role_required('admin')
 def chart_data_admin():
     """API untuk menampilkan data grafik reservasi keseluruhan"""
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    
-    # Query untuk mendapatkan semua reservasi dalam 30 hari terakhir
-    cursor.execute(
-        '''SELECT DATE(date) as reservation_date, COUNT(*) as count 
-           FROM reservations 
-           WHERE date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-           GROUP BY DATE(date)
-           ORDER BY DATE(date) ASC'''
-    )
-    data = cursor.fetchall()
-    
-    # Query untuk status reservasi
-    cursor.execute(
-        '''SELECT status, COUNT(*) as count 
-           FROM reservations 
-           GROUP BY status'''
-    )
-    status_data = cursor.fetchall()
-    conn.close()
-    
-    # Format data untuk Chart.js - Grafik garis
-    labels = []
-    counts = []
-    
-    if not data:
-        for i in range(30, -1, -1):
-            date = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
-            labels.append(date)
-            counts.append(0)
-    else:
-        data_dict = {item['reservation_date'].strftime('%Y-%m-%d'): item['count'] for item in data}
-        for i in range(30, -1, -1):
-            date = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
-            labels.append(date)
-            counts.append(data_dict.get(date, 0))
-    
-    # Format data untuk pie chart - Status
-    status_labels = []
-    status_counts = []
-    for item in status_data:
-        status_labels.append(item['status'].capitalize() if item['status'] else 'Unknown')
-        status_counts.append(item['count'])
-    
-    return jsonify({
-        'line_chart': {
-            'labels': labels,
-            'data': counts,
-            'title': 'Total Reservasi - 30 Hari Terakhir'
-        },
-        'status_chart': {
-            'labels': status_labels,
-            'data': status_counts,
-            'title': 'Status Reservasi'
-        }
-    })
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Query untuk mendapatkan semua reservasi dalam 30 hari lalu + 30 hari ke depan
+        cursor.execute(
+            '''SELECT DATE(date) as reservation_date, COUNT(*) as count 
+               FROM reservations 
+               WHERE date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+               AND date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+               GROUP BY DATE(date)
+               ORDER BY DATE(date) ASC'''
+        )
+        data = cursor.fetchall()
+        
+        # Query untuk status reservasi
+        cursor.execute(
+            '''SELECT status, COUNT(*) as count 
+               FROM reservations 
+               GROUP BY status'''
+        )
+        status_data = cursor.fetchall()
+        conn.close()
+        
+        # Format data untuk Chart.js - Grafik garis
+        labels = []
+        counts = []
+        
+        if not data:
+            for i in range(30, -31, -1):
+                date = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
+                labels.append(date)
+                counts.append(0)
+        else:
+            # Buat dictionary untuk data yang ada
+            data_dict = {}
+            for item in data:
+                date_key = item['reservation_date'] if isinstance(item['reservation_date'], str) else item['reservation_date'].strftime('%Y-%m-%d')
+                data_dict[date_key] = item['count']
+            
+            for i in range(30, -31, -1):
+                date = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
+                labels.append(date)
+                counts.append(data_dict.get(date, 0))
+        
+        # Format data untuk pie chart - Status
+        status_labels = []
+        status_counts = []
+        for item in status_data:
+            status_labels.append(item['status'].capitalize() if item['status'] else 'Unknown')
+            status_counts.append(item['count'])
+        
+        return jsonify({
+            'line_chart': {
+                'labels': labels,
+                'data': counts,
+                'title': 'Total Reservasi - 30 Hari Lalu & 30 Hari Ke Depan'
+            },
+            'status_chart': {
+                'labels': status_labels,
+                'data': status_counts,
+                'title': 'Status Reservasi'
+            }
+        })
+    except Exception as e:
+        print(f"Error in chart_data_admin: {e}")
+        return jsonify({
+            'line_chart': {
+                'labels': [],
+                'data': [],
+                'title': 'Total Reservasi - 30 Hari Lalu & 30 Hari Ke Depan'
+            },
+            'status_chart': {
+                'labels': [],
+                'data': [],
+                'title': 'Status Reservasi'
+            },
+            'error': str(e)
+        }), 500
 
 
 @app.route('/print/reservations')
@@ -695,7 +769,7 @@ def pdf_reservations():
     pdf.cell(50, 10, f"Nama: {session['username']}")
     pdf.ln()
     pdf.cell(50, 10, f"Tanggal Cetak: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
-    pdf.ln(5)
+    pdf.ln(10)
     
     pdf.set_font("Arial", "B", 10)
     pdf.set_fill_color(212, 165, 116)
@@ -761,7 +835,7 @@ def pdf_admin_report():
     pdf.cell(50, 10, f"Waktu Cetak: {datetime.now().strftime('%H:%M:%S')}")
     pdf.ln()
     pdf.cell(50, 10, f"Total Reservasi: {len(reservations)}")
-    pdf.ln(5)
+    pdf.ln(10)
     
     pdf.set_font("Arial", "B", 9)
     pdf.set_fill_color(212, 165, 116)
