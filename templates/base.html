@@ -12,6 +12,7 @@
         <div class="container">
             <!-- Logo/Nama Restoran -->
             <div class="logo">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="logo" class="logo">
                 <a href="{{ url_for('index') }}">Le Restaurant</a>
             </div>
             
@@ -19,8 +20,8 @@
             <nav class="nav">
                 {% if session.get('role') not in ['admin', 'staff', 'customer'] %}
                 <a href="{{ url_for('index') }}">Home</a>
-                    <a href="#menu">Menu</a>
-                    <a href="#tentang-kami">About</a>
+                    <a href="{{ url_for('menu') }}">Menu</a>
+                    <a href="{{ url_for('about') }}">About</a>
                 {% endif %}
                 {% if session.get('role') == 'customer' %}
                     <a href="{{ url_for('menu') }}">Menu</a>

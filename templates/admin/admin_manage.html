@@ -4,14 +4,12 @@
 
 {% block content %}
 <div class="container">
-    <h2 style="text-align: center;">Manajemen Staff</h2>
-    <div style="text-align: center; margin-bottom: 2rem;">
-        <a href="{{ url_for('admin_tambah_staff') }}" class="btn btn-success">+ Tambah Staff Baru</a>
-    </div>
-
+    <h2>Daftar Staff</h2>
     <div style="margin-top: 2rem;">
-        <h3>Daftar Staff</h3>
-        <a href="{{ url_for('admin_dashboard') }}" class="btn">Kembali ke Dashboard</a>
+        <div>
+            <a href="{{ url_for('admin_tambah_staff') }}" class="btn btn-success">+ Tambah Staff Baru</a>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn">Kembali ke Dashboard</a>
+        </div>
 
         {% if staff_list %}
         <div class="table-container">

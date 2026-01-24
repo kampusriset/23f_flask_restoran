@@ -25,6 +25,20 @@
         <div style="text-align: center; margin: 2rem 0;">
             <a href="{{ url_for('reservation') }}" class="btn btn-primary">Buat Reservasi Baru</a>
             <a href="{{ url_for('menu') }}" class="btn btn-success">Lihat Menu</a>
+            <a href="{{ url_for('print_reservations') }}" class="btn" style="background: #6366f1; color: white; text-decoration: none; padding: 0.5rem 1.5rem; border-radius: 4px; display: inline-block; margin-left: 0.5rem; font-weight: bold;">🖨️ Print Reservasi</a>
+        </div>
+        
+        <!-- Chart Section -->
+        <div style="margin: 3rem 0; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">Grafik Reservasi (30 Hari Lalu & 30 Hari Ke Depan)</h2>
+                <button id="toggleChartBtn" onclick="toggleChart()" style="padding: 0.5rem 1rem; background: #d4a574; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.3s;">
+                    Sembunyikan
+                </button>
+            </div>
+            <div id="chartContainer" style="position: relative; height: 400px;">
+                <canvas id="reservationChart"></canvas>
+            </div>
         </div>
         
         <h2 style="margin-top: 3rem; margin-bottom: 1rem;">Riwayat Reservasi Anda</h2>
@@ -67,4 +81,89 @@
         {% endif %}
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Toggle Chart Visibility
+    let chartVisible = localStorage.getItem('dashboardChartVisible') !== 'false';
+    let chartInstance = null;
+
+    function toggleChart() {
+        const chartContainer = document.getElementById('chartContainer');
+        const toggleBtn = document.getElementById('toggleChartBtn');
+        
+        chartVisible = !chartVisible;
+        localStorage.setItem('dashboardChartVisible', chartVisible);
+        
+        if (chartVisible) {
+            chartContainer.style.display = 'block';
+            toggleBtn.textContent = 'Sembunyikan';
+        } else {
+            chartContainer.style.display = 'none';
+            toggleBtn.textContent = 'Tampilkan';
+        }
+    }
+
+    // Initialize chart visibility on page load
+    if (!chartVisible) {
+        document.getElementById('chartContainer').style.display = 'none';
+        document.getElementById('toggleChartBtn').textContent = 'Tampilkan';
+    }
+
+    // Fetch data from API
+    fetch('{{ url_for("chart_data") }}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('API Error:', data.error);
+                return;
+            }
+            const ctx = document.getElementById('reservationChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Jumlah Reservasi',
+                        data: data.data,
+                        borderColor: '#d4a574',
+                        backgroundColor: 'rgba(212, 165, 116, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#d4a574',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                font: { size: 12 },
+                                padding: 15
+                            }
+                        },
+                        title: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error loading chart data:', error));
+</script>
+
 {% endblock %}

@@ -7,7 +7,7 @@
     <h2>Tambah Menu Baru</h2>
     
     <div class="form-container" style="max-width: 500px;">
-        <form method="POST" action="{{ url_for('admin_tambah_menu') }}">
+        <form method="POST" action="{{ url_for('admin_tambah_menu') }}" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="name">Nama</label>
                 <input type="text" id="name" name="name" required>
@@ -35,6 +35,12 @@
             <div class="form-group">
                 <label for="image_url">URL Gambar</label>
                 <input type="url" id="image_url" name="image_url">
+            </div>
+
+            <div class="form-group">
+                <label for="image_file">Atau Upload File Gambar</label>
+                <input type="file" id="image_file" name="image_file" accept="image/png,image/jpeg,image/gif">
+                <small style="color: #7f8c8d; display: block; margin-top: 0.5rem;">Format: PNG, JPG, JPEG, GIF (Max: 5MB)</small>
             </div>
             
             <div style="display: flex; gap: 1rem;">

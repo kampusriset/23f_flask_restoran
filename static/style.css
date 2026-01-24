@@ -40,6 +40,18 @@ body {
     align-items: center;
 }
 
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.logo img {
+    height: 60px;
+    width: auto;
+    object-fit: contain;
+}
+
 .logo a {
     color: #667eea;
     text-decoration: none;
@@ -91,6 +103,10 @@ nav a .btn-logout {
 
 .header.shrink {
     padding: 0.4rem 0;
+}
+
+.header.shrink .logo img {
+    height: 40px;
 }
 
 .header.shrink .logo a {

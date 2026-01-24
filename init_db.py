@@ -154,7 +154,7 @@ def init_db():
             time TIME NOT NULL,
             guests INT NOT NULL,
             message TEXT,
-            status ENUM('pending','approved','rejected') DEFAULT 'pending',
+            status ENUM('pending','approved','rejected','completed') DEFAULT 'pending',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
@@ -232,3 +232,15 @@ if __name__ == "__main__":
     init_db()
     add_sample_data()
     create_admin()
+    
+    # Update existing reservations table to add 'completed' status
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("ALTER TABLE reservations MODIFY status ENUM('pending','approved','rejected','completed') DEFAULT 'pending'")
+        conn.commit()
+        print("Database schema updated successfully!")
+        conn.close()
+    except Exception as e:
+        print(f"Schema update note: {e}")
+
