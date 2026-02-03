@@ -30,6 +30,12 @@ Aplikasi Le Restaurant dirancang untuk:
 - **JavaScript**
 
 ---
+## ☁️ Flowchart Aplikasi
+![Flowchart Aplikasi](Flowchart.jpg)
+---
+## Video Dokumentasi Aplikasi
+https://drive.google.com/file/d/1-B61JjDfMpQKKDMnNanbUhuKnAxENGpQ/view?usp=sharing
+---
 
 ## ⚙️ Cara Menjalankan Project
 
@@ -82,3 +88,4 @@ python app.py
 ```
 python3 app.py
 ```
+
