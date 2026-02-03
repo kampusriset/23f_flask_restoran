@@ -31,10 +31,10 @@ Aplikasi Le Restaurant dirancang untuk:
 
 ---
 ## ☁️ Flowchart Aplikasi
-![Flowchart Aplikasi](Flowchart.jpg)
+![Flowchart Aplikasi](Flowchart.png)
 ---
 ## Video Dokumentasi Aplikasi
-https://drive.google.com/file/d/1-B61JjDfMpQKKDMnNanbUhuKnAxENGpQ/view?usp=sharing
+- https://drive.google.com/file/d/1-B61JjDfMpQKKDMnNanbUhuKnAxENGpQ/view?usp=sharing
 ---
 
 ## ⚙️ Cara Menjalankan Project
